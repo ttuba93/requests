@@ -3,7 +3,7 @@ const API_URL = process.env.NEXT_PUBLIC_CAMUNDA_API_URL || "http://localhost:808
 /**
  * Получает XML-диаграмму процесса.
  */
-export const fetchProcessXml = async (processDefinitionId: string = "Process_student") => {
+export const fetchProcessXml = async (processDefinitionId: string) => {
   try {
     const response = await fetch(`${API_URL}/process-definition/key/${processDefinitionId}/xml`);
     if (!response.ok) throw new Error(`Ошибка загрузки XML процесса: ${response.statusText}`);
@@ -18,7 +18,7 @@ export const fetchProcessXml = async (processDefinitionId: string = "Process_stu
 /**
  * Получает список активных задач процесса.
  */
-export const fetchActiveTasks = async (processInstanceId: string = "Process_student") => {
+export const fetchActiveTasks = async (processInstanceId: string) => {
   try {
     const response = await fetch(`${API_URL}/history/activity-instance?processInstanceId=${processInstanceId}`);
     if (!response.ok) throw new Error(`Ошибка загрузки активных задач: ${response.statusText}`);
@@ -33,7 +33,7 @@ export const fetchActiveTasks = async (processInstanceId: string = "Process_stud
 /**
  * Получает инициатора процесса.
  */
-export const fetchInitiator = async (processInstanceId: string = "Process_student") => {
+export const fetchInitiator = async (processInstanceId: string) => {
   try {
     const response = await fetch(
       `${API_URL}/history/variable-instance?processInstanceId=${processInstanceId}&variableName=initiator`
@@ -50,7 +50,7 @@ export const fetchInitiator = async (processInstanceId: string = "Process_studen
 /**
  * Запускает процесс "Process_student" в Camunda.
  */
-export const startProcess = async (processDefinitionKey: string = "Process_student", initiator: string) => {
+export const startProcess = async (processDefinitionKey: string, initiator: string) => {
   try {
     const response = await fetch(`${API_URL}/process-definition/key/${processDefinitionKey}/start`, {
       method: "POST",
