@@ -9,18 +9,22 @@ export async function POST() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 variables: {
-                    status: { value: "Process Started", type: "String" },
+                    initiator: { value: "user123", type: "String" }, // 👈 Добавлен initiator
                 },
             }),
         });
 
+        const responseText = await response.text(); // 👈 Читаем ответ от Camunda
+        console.log("Camunda response:", responseText);
+
         if (!response.ok) {
-            throw new Error(`Failed to start process: ${response.statusText}`);
+            console.error("Failed to start process:", responseText);
+            throw new Error(`Failed to start process: ${responseText}`);
         }
 
-        const data = await response.json();
-        return NextResponse.json(data);
+        return NextResponse.json(JSON.parse(responseText)); // 👈 Парсим JSON и отправляем клиенту
     } catch (error) {
+        console.error("Ошибка API:", error);
         return NextResponse.json({ message: (error as Error).message }, { status: 500 });
     }
 }
