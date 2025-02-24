@@ -2,29 +2,34 @@ import { NextResponse } from "next/server";
 
 const API_URL = process.env.NEXT_PUBLIC_CAMUNDA_API_URL || "http://localhost:8080/engine-rest";
 
-export async function POST() {
-    try {
-        const response = await fetch(`${API_URL}/process-definition/key/Process_student/start`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                variables: {
-                    initiator: { value: "demo", type: "String" }, // 👈 Добавлен initiator
-                },
-            }),
-        });
+/**
+ * Запускает процесс "Process_student" в Camunda.
+ */
+export const startProcess = async (processDefinitionKey: string = "Process_student", initiator: string) => {
+  try {
+    const response = await fetch(`${API_URL}/process-definition/key/${processDefinitionKey}/start`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        variables: {
+          initiator: { value: initiator, type: "String" }, // 👈 Добавлен initiator
+        },
+      }),
+    });
 
-        const responseText = await response.text(); // 👈 Читаем ответ от Camunda
-        console.log("Camunda response:", responseText);
+    const data = await response.json();
 
-        if (!response.ok) {
-            console.error("Failed to start process:", responseText);
-            throw new Error(`Failed to start process: ${responseText}`);
-        }
-
-        return NextResponse.json(JSON.parse(responseText)); // 👈 Парсим JSON и отправляем клиенту
-    } catch (error) {
-        console.error("Ошибка API:", error);
-        return NextResponse.json({ message: (error as Error).message }, { status: 500 });
+    if (!response.ok) {
+      console.error("Error Response:", data);
+      throw new Error(`Camunda Error: ${JSON.stringify(data)}`);
     }
-}
+
+    console.log("Process started successfully:", data);
+    return data;
+  } catch (error) {
+    console.error("API Error:", (error as Error).message);
+    return null;
+  }
+};
