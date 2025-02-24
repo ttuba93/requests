@@ -3,9 +3,9 @@ const API_URL = process.env.NEXT_PUBLIC_CAMUNDA_API_URL || "http://localhost:808
 /**
  * Получает XML-диаграмму процесса.
  */
-export const fetchProcessXml = async (processDefinitionId: string) => {
+export const fetchProcessXml = async (processDefinitionId: string = "Process_student") => {
   try {
-    const response = await fetch(`${API_URL}/process-definition/${processDefinitionId}/xml`);
+    const response = await fetch(`${API_URL}/process-definition/key/${processDefinitionId}/xml`);
     if (!response.ok) throw new Error(`Ошибка загрузки XML процесса: ${response.statusText}`);
     const data = await response.json();
     return data.bpmn20Xml;
@@ -18,7 +18,7 @@ export const fetchProcessXml = async (processDefinitionId: string) => {
 /**
  * Получает список активных задач процесса.
  */
-export const fetchActiveTasks = async (processInstanceId: string) => {
+export const fetchActiveTasks = async (processInstanceId: string = "Process_student") => {
   try {
     const response = await fetch(`${API_URL}/history/activity-instance?processInstanceId=${processInstanceId}`);
     if (!response.ok) throw new Error(`Ошибка загрузки активных задач: ${response.statusText}`);
@@ -31,23 +31,9 @@ export const fetchActiveTasks = async (processInstanceId: string) => {
 };
 
 /**
- * Получает список задач пользователя.
- */
-export const fetchUserTasks = async (userId: string) => {
-  try {
-    const response = await fetch(`${API_URL}/task?assignee=${userId}`);
-    if (!response.ok) throw new Error(`Ошибка загрузки задач пользователя: ${response.statusText}`);
-    return response.json();
-  } catch (error) {
-    console.error("Ошибка получения задач пользователя:", error);
-    return [];
-  }
-};
-
-/**
  * Получает инициатора процесса.
  */
-export const fetchInitiator = async (processInstanceId: string) => {
+export const fetchInitiator = async (processInstanceId: string = "Process_student") => {
   try {
     const response = await fetch(
       `${API_URL}/history/variable-instance?processInstanceId=${processInstanceId}&variableName=initiator`
@@ -62,9 +48,9 @@ export const fetchInitiator = async (processInstanceId: string) => {
 };
 
 /**
- * Запускает процесс в Camunda.
+ * Запускает процесс "Process_student" в Camunda.
  */
-export const startProcess = async (processDefinitionKey: string, initiator: string) => {
+export const startProcess = async (processDefinitionKey: string = "Process_student", initiator: string) => {
   try {
     const response = await fetch(`${API_URL}/process-definition/key/${processDefinitionKey}/start`, {
       method: "POST",
