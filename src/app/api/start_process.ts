@@ -9,7 +9,7 @@ export async function POST() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 variables: {
-                    initiator: { value: "user123", type: "String" }, // 👈 Добавлен initiator
+                    initiator: { value: "demo", type: "String" }, // 👈 Добавлен initiator
                 },
             }),
         });
