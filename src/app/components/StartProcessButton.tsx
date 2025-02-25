@@ -1,43 +1,27 @@
-"use client";
-
-import { useState } from "react";
-
-const StartProcessButton = () => {
-    const [processId, setProcessId] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
-
+export default function Home() {
     const startProcess = async () => {
-        setLoading(true);
-        try {
-            const response = await fetch("/api/start-process", {
-                method: "POST",
-            });
+      try {
+        const response = await fetch("/api/camunda/process-definition/key/Process_student/start", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+          });
 
-            if (!response.ok) {
-                throw new Error("Failed to start process");
-            }
-
-            const data = await response.json();
-            setProcessId(data.id);
-        } catch (error) {
-            console.error("Error:", error);
-        } finally {
-            setLoading(false);
+  
+        if (!response.ok) {
+          throw new Error(`Ошибка: ${response.status} ${response.statusText}`);
         }
+  
+        const data = await response.json();
+        console.log("Процесс запущен:", data);
+      } catch (error) {
+        console.error("Ошибка при запуске процесса:", error);
+      }
     };
-
+  
     return (
-        <div>
-            <button
-                onClick={startProcess}
-                disabled={loading}
-                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded disabled:bg-gray-400"
-            >
-                {loading ? "Запуск..." : "Запустить процесс"}
-            </button>
-            {processId && <p className="mt-2">✅ Процесс запущен! ID: {processId}</p>}
-        </div>
+      <div>
+        <button onClick={startProcess}>Запустить процесс</button>
+      </div>
     );
-};
-
-export default StartProcessButton;
+  }
+  
