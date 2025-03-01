@@ -50,7 +50,7 @@ const Home = () => {
       const response = await fetch(`${API_BASE_URL}/start-process/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ student_id: "12345", initiator: "user1" }),
+        body: JSON.stringify({ student_id: "12345", initiator: "demo" }),
       });
       const data = await response.json();
       if (data.processInstanceId) {
