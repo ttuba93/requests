@@ -25,7 +25,7 @@
 import { useEffect, useState } from "react";
 import { Button, Steps, Spin, message } from "antd";
 
-const API_BASE_URL = "http://localhost:8000/api"; // Адрес твоего Django API
+const API_BASE_URL = "http://localhost:8000/api"; // Адрес Django API
 
 const processSteps = [
   "Запрос отправлен",
@@ -41,6 +41,7 @@ const Home = () => {
   const [loading, setLoading] = useState(false);
   const [processId, setProcessId] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
+  const [taskId, setTaskId] = useState<string | null>(null);
 
   // Запуск нового процесса
   const startNewProcess = async () => {
@@ -49,13 +50,13 @@ const Home = () => {
       const response = await fetch(`${API_BASE_URL}/start-process/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ student_id: "12345", initiator: "demo" }),
+        body: JSON.stringify({ student_id: "12345", initiator: "user1" }),
       });
       const data = await response.json();
       if (data.processInstanceId) {
         message.success("Процесс запущен!");
         setProcessId(data.processInstanceId);
-        setCurrentStep(1); // После запуска процесс на 1-м шаге
+        setCurrentStep(1); // Процесс стартует на первом шаге
       } else {
         message.error("Ошибка запуска процесса");
       }
@@ -74,6 +75,7 @@ const Home = () => {
       const task = tasks.find((t: any) => t.processInstanceId === processId);
       if (task) {
         setCurrentStep(getStepFromTask(task.name));
+        setTaskId(task.id);
       }
     } catch (error) {
       message.error("Ошибка загрузки статуса");
@@ -90,6 +92,30 @@ const Home = () => {
     if (taskName.includes("Set status Accepted")) return 5;
     if (taskName.includes("Receive a feedback")) return 6;
     return 0;
+  };
+
+  // Завершение текущего шага (переход к следующему)
+  const completeCurrentTask = async () => {
+    if (!taskId) return;
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/tasks/${taskId}/complete/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ variables: {} }), // Можно передавать переменные процесса
+      });
+
+      if (response.ok) {
+        message.success("Шаг завершен!");
+        setCurrentStep((prev) => prev + 1); // Двигаем шаг вперед
+        fetchProcessStatus(); // Обновляем данные о процессах
+      } else {
+        message.error("Ошибка завершения шага");
+      }
+    } catch (error) {
+      message.error("Ошибка подключения к серверу");
+    }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -115,6 +141,12 @@ const Home = () => {
               <Steps.Step key={index} title={step} />
             ))}
           </Steps>
+
+          {taskId && (
+            <Button type="primary" onClick={completeCurrentTask} loading={loading} style={{ marginTop: 20 }}>
+              Завершить текущий шаг
+            </Button>
+          )}
         </div>
       ) : (
         <p>Нет активных процессов</p>
