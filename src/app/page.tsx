@@ -1,4 +1,4 @@
-// "use client";
+"use client";
 
 // import StartProcessButton from "./components/StartProcessButton";
 // import StudentProcessSteps from "./components/StudentProcessSteps";
@@ -22,14 +22,25 @@
 //     );
 // }
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Steps, Spin, message } from "antd";
 
-const API_BASE_URL = "http://localhost:8000"; // Адрес твоего Django API
+const API_BASE_URL = "http://localhost:8000/api"; // Адрес твоего Django API
+
+const processSteps = [
+  "Запрос отправлен",
+  "Ожидание ответа студента",
+  "Документы отправлены",
+  "Проверка документов",
+  "Документы отклонены",
+  "Документы приняты",
+  "Получена обратная связь",
+];
 
 const Home = () => {
   const [loading, setLoading] = useState(false);
-  const [processes, setProcesses] = useState<{ id: string }[]>([]);
+  const [processId, setProcessId] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState(0);
 
   // Запуск нового процесса
   const startNewProcess = async () => {
@@ -43,7 +54,8 @@ const Home = () => {
       const data = await response.json();
       if (data.processInstanceId) {
         message.success("Процесс запущен!");
-        setProcesses([...processes, { id: data.processInstanceId }]); // Добавляем процесс в список
+        setProcessId(data.processInstanceId);
+        setCurrentStep(1); // После запуска процесс на 1-м шаге
       } else {
         message.error("Ошибка запуска процесса");
       }
@@ -53,35 +65,59 @@ const Home = () => {
     setLoading(false);
   };
 
+  // Получение текущего статуса процесса
+  const fetchProcessStatus = async () => {
+    if (!processId) return;
+    try {
+      const response = await fetch(`${API_BASE_URL}/tasks/`);
+      const tasks = await response.json();
+      const task = tasks.find((t: any) => t.processInstanceId === processId);
+      if (task) {
+        setCurrentStep(getStepFromTask(task.name));
+      }
+    } catch (error) {
+      message.error("Ошибка загрузки статуса");
+    }
+  };
+
+  // Функция маппинга задач в шаги процесса
+  const getStepFromTask = (taskName: string) => {
+    if (taskName.includes("Send request info")) return 0;
+    if (taskName.includes("Set status Awaiting")) return 1;
+    if (taskName.includes("Send required documents")) return 2;
+    if (taskName.includes("Documents Verification")) return 3;
+    if (taskName.includes("Set status Denied")) return 4;
+    if (taskName.includes("Set status Accepted")) return 5;
+    if (taskName.includes("Receive a feedback")) return 6;
+    return 0;
+  };
+
+  useEffect(() => {
+    if (processId) {
+      const interval = setInterval(fetchProcessStatus, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [processId]);
+
   return (
-    <div style={{ maxWidth: 600, margin: "auto", padding: "20px" }}>
-      <h1>Запуск процессов Camunda</h1>
+    <div style={{ maxWidth: 700, margin: "auto", padding: "20px" }}>
+      <h1>Процесс оформления стажировки</h1>
 
       <Button type="primary" onClick={startNewProcess} loading={loading} style={{ marginBottom: 20 }}>
         Запустить процесс
       </Button>
 
-      {loading ? (
-        <Spin size="large" />
+      {processId ? (
+        <div>
+          <h3>Процесс ID: {processId}</h3>
+          <Steps current={currentStep} direction="vertical" size="small">
+            {processSteps.map((step, index) => (
+              <Steps.Step key={index} title={step} />
+            ))}
+          </Steps>
+        </div>
       ) : (
-        processes.length > 0 ? (
-          processes.map((process) => (
-            <div key={process.id} style={{ marginBottom: 20 }}>
-              <h3>Процесс ID: {process.id}</h3>
-              <Steps
-                current={0} // Всегда первый шаг, так как бек не отдает статус
-                size="small"
-                items={[
-                  { title: "Запущен" },
-                  { title: "В процессе" },
-                  { title: "Завершен" }
-                ]}
-              />
-            </div>
-          ))
-        ) : (
-          <p>Нет активных процессов</p>
-        )
+        <p>Нет активных процессов</p>
       )}
     </div>
   );
