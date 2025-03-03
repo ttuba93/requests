@@ -126,7 +126,15 @@ const Home = () => {
   }, [processId]);
 
   return (
-    <div style={{ maxWidth: 700, margin: "auto", padding: "20px" }}>
+    <div       
+    style={{
+      maxWidth: 700,
+      margin: "auto",
+      padding: "20px",
+      backgroundColor: "white",
+      color: "black",
+      minHeight: "100vh",
+    }}>
       <h1>Процесс оформления стажировки</h1>
 
       <Button type="primary" onClick={startNewProcess} loading={loading} style={{ marginBottom: 20 }}>
