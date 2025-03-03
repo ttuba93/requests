@@ -68,7 +68,7 @@ const Home = () => {
   const fetchProcessStatus = async () => {
     if (!processId) return;
     try {
-      const response = await fetch(`${API_BASE_URL}/tasks/`);
+      const response = await fetch(`${API_BASE_URL}/tasks/user_id=demo`);
       const tasks = await response.json();
       const task = tasks.find((t: any) => t.processInstanceId === processId);
       if (task) {
